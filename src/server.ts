@@ -555,18 +555,15 @@ async function handleRequest(request: http.IncomingMessage, response: http.Serve
       };
 
       state.workspaces[workspaceId] = workspace;
-      await Promise.all([
-        saveState(),
-        recordEvent("workspace_created", {
-          source,
-          selfTest,
-          workspaceId,
-          details: {
-            environment,
-            workspaceName
-          }
-        })
-      ]);
+      await recordEvent("workspace_created", {
+        source,
+        selfTest,
+        workspaceId,
+        details: {
+          environment,
+          workspaceName
+        }
+      });
 
       sendJson(response, 201, {
         workspace: workspacePublicView(workspace),
@@ -622,11 +619,14 @@ async function handleRequest(request: http.IncomingMessage, response: http.Serve
       }
 
       const defaultVariant = asRequiredString(payload, "defaultVariant", 6);
+      if (defaultVariant !== "on" && defaultVariant !== "off") {
+        throw new Error("invalid_defaultVariant");
+      }
       const rolloutPercent = asOptionalInteger(payload, "rolloutPercent") ?? 0;
       const sanitized = sanitizeFlagDraft({
         flagKey: asRequiredString(payload, "flagKey", 64),
         description: normalizeOptionalString(payload.description, "description", 220),
-        defaultVariant: defaultVariant === "on" ? "on" : "off",
+        defaultVariant,
         rolloutPercent
       });
 
@@ -643,19 +643,16 @@ async function handleRequest(request: http.IncomingMessage, response: http.Serve
       const source = normalizeSource(payload.source, workspace.source);
       const selfTest = parseOptionalBoolean(payload.selfTest) ?? workspace.selfTest;
 
-      await Promise.all([
-        saveState(),
-        recordEvent("flag_saved", {
-          source,
-          selfTest,
-          workspaceId,
-          details: {
-            flagKey: nextFlag.flagKey,
-            rolloutPercent: nextFlag.rolloutPercent,
-            defaultVariant: nextFlag.defaultVariant
-          }
-        })
-      ]);
+      await recordEvent("flag_saved", {
+        source,
+        selfTest,
+        workspaceId,
+        details: {
+          flagKey: nextFlag.flagKey,
+          rolloutPercent: nextFlag.rolloutPercent,
+          defaultVariant: nextFlag.defaultVariant
+        }
+      });
 
       sendJson(response, 200, {
         flag: nextFlag,
@@ -691,7 +688,7 @@ async function handleRequest(request: http.IncomingMessage, response: http.Serve
 
       const flag = workspace.flags[flagKey];
       const evaluation = flag
-        ? evaluateBooleanFlag(flag, { targetingKey, fallbackValue: defaultValue })
+        ? evaluateBooleanFlag(flag, { targetingKey })
         : evaluateMissingFlag(defaultValue);
 
       await recordEvent("evaluation_requested", {
@@ -738,7 +735,7 @@ async function handleRequest(request: http.IncomingMessage, response: http.Serve
       const workspace = match.workspace;
       const flag = workspace.flags[flagKey];
       const evaluation = flag
-        ? evaluateBooleanFlag(flag, { targetingKey, fallbackValue: defaultValue })
+        ? evaluateBooleanFlag(flag, { targetingKey })
         : evaluateMissingFlag(defaultValue);
 
       await recordEvent("evaluation_requested", {
@@ -831,7 +828,6 @@ async function handleRequest(request: http.IncomingMessage, response: http.Serve
         note
       };
 
-      await saveState();
       await recordEvent("payment_evidence_submitted", {
         source,
         selfTest,

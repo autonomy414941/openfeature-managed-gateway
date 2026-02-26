@@ -18,7 +18,6 @@ export type FlagDefinition = {
 
 export type EvaluationInput = {
   targetingKey?: string;
-  fallbackValue?: boolean;
 };
 
 export type EvaluationResult = {

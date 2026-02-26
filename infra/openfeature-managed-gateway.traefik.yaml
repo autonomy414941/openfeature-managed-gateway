@@ -1,0 +1,23 @@
+http:
+  routers:
+    openfeature-managed-gateway-http:
+      entryPoints:
+        - http
+      rule: "Host(`openfeature-gateway.devtoolbox.dedyn.io`) || Host(`openfeature-gateway.46.225.49.219.nip.io`)"
+      service: openfeature-managed-gateway
+      priority: 1200
+
+    openfeature-managed-gateway-https:
+      entryPoints:
+        - https
+      rule: "Host(`openfeature-gateway.46.225.49.219.nip.io`)"
+      service: openfeature-managed-gateway
+      priority: 1200
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    openfeature-managed-gateway:
+      loadBalancer:
+        servers:
+          - url: "http://openfeature-managed-gateway:8080"

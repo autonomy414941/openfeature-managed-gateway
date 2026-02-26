@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenFeature Managed Gateway</title>
+    <meta
+      name="description"
+      content="Managed OpenFeature-compatible flag endpoint. Create a workspace, define rollout rules, and unlock production keys for $19/month."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero card">
+        <p class="kicker">MVP</p>
+        <h1>OpenFeature Managed Gateway</h1>
+        <p>
+          Deploy standards-friendly feature flags without self-hosting overhead. Start with sandbox keys, then unlock a
+          production key for <strong>$19/month</strong>.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>1) Create Workspace</h2>
+        <form id="workspace-form" class="form-grid">
+          <label>
+            Workspace name
+            <input name="workspaceName" required maxlength="80" placeholder="Acme Checkout" />
+          </label>
+
+          <label>
+            Environment
+            <input name="environment" required maxlength="40" value="production" />
+          </label>
+
+          <button id="workspace-btn" type="submit">Create Workspace</button>
+        </form>
+        <p id="workspace-status" class="status" data-tone="neutral">Create a workspace to receive your sandbox API key.</p>
+
+        <div id="workspace-result" class="result-block hidden">
+          <p><strong>Workspace ID:</strong> <span id="workspace-id"></span></p>
+          <p><strong>Sandbox API key:</strong> <span id="sandbox-key" class="mono"></span></p>
+          <p><strong>Production API key:</strong> <span id="production-key" class="mono">(locked)</span></p>
+        </div>
+      </section>
+
+      <section id="flag-section" class="card hidden">
+        <h2>2) Upsert Flag</h2>
+        <form id="flag-form" class="form-grid">
+          <label>
+            Flag key
+            <input name="flagKey" required maxlength="64" placeholder="new-checkout" />
+          </label>
+
+          <label>
+            Rollout percent (0-100)
+            <input name="rolloutPercent" type="number" min="0" max="100" value="25" />
+          </label>
+
+          <label>
+            Default variant
+            <select name="defaultVariant">
+              <option value="off">off</option>
+              <option value="on">on</option>
+            </select>
+          </label>
+
+          <label class="wide">
+            Description (optional)
+            <input name="description" maxlength="220" placeholder="Enables the new checkout summary layout" />
+          </label>
+
+          <button id="flag-btn" type="submit">Save Flag</button>
+        </form>
+        <p id="flag-status" class="status" data-tone="neutral">Create at least one flag before evaluating.</p>
+      </section>
+
+      <section id="eval-section" class="card hidden">
+        <h2>3) Evaluate</h2>
+        <form id="eval-form" class="form-grid">
+          <label>
+            Flag key
+            <input name="flagKey" required maxlength="64" placeholder="new-checkout" />
+          </label>
+
+          <label>
+            Targeting key
+            <input name="targetingKey" maxlength="120" value="customer-42" />
+          </label>
+
+          <label>
+            Default value if missing
+            <select name="defaultValue">
+              <option value="false">false</option>
+              <option value="true">true</option>
+            </select>
+          </label>
+
+          <button id="eval-btn" type="submit">Run Evaluation</button>
+        </form>
+
+        <p id="eval-status" class="status" data-tone="neutral">Run a test call with your sandbox key.</p>
+        <pre id="eval-output" class="code-block"></pre>
+        <pre id="curl-output" class="code-block"></pre>
+      </section>
+
+      <section id="billing-section" class="card hidden">
+        <h2>4) Unlock Production Key</h2>
+        <p>
+          Production key unlock is manual-payment proof for now. Click checkout, pay, then submit proof to receive your
+          persistent `of_prod_*` key.
+        </p>
+
+        <button id="checkout-btn" type="button">Open Checkout</button>
+
+        <form id="proof-form" class="form-grid proof-grid">
+          <label>
+            Payer email
+            <input name="payerEmail" type="email" required placeholder="you@example.com" />
+          </label>
+
+          <label>
+            Transaction ID
+            <input name="transactionId" required maxlength="120" placeholder="pi_123..." />
+          </label>
+
+          <label class="wide">
+            Evidence URL (optional)
+            <input name="evidenceUrl" maxlength="300" placeholder="https://..." />
+          </label>
+
+          <label class="wide">
+            Note (optional)
+            <textarea name="note" rows="2" maxlength="400"></textarea>
+          </label>
+
+          <button id="proof-btn" type="submit">Submit Proof</button>
+        </form>
+
+        <p id="billing-status" class="status" data-tone="neutral">Checkout becomes active after workspace creation.</p>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
